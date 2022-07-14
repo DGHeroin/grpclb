@@ -1,0 +1,17 @@
+syntax = "proto3";
+package pb;
+option go_package = ".;pb";
+
+service MessageHandler {
+  rpc Request (RequestMessage) returns (ResponseMessage) {}
+}
+
+message RequestMessage {
+  string name = 1;
+  bytes payload = 2;
+}
+
+message ResponseMessage {
+  bytes payload = 1;
+  bytes error = 2;
+}
