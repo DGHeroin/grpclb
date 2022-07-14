@@ -17,6 +17,7 @@ type (
         conn     *grpc.ClientConn
         discover Discover
         mu       sync.Mutex
+        opt      *option
     }
     Discover interface {
         WatchUpdate() <-chan []string
@@ -39,6 +40,7 @@ func NewClient(discover Discover, fns ...OptionFunc) Client {
     for _, fn := range fns {
         fn(opt)
     }
+    cli.opt = opt
     if opt.usePush {
         go cli.loopPush()
     }
@@ -114,13 +116,19 @@ func (c *client) waitPush() {
         log.Println("发送push失败:", err)
         return
     }
+    pushFunc := c.opt.pushFunc
+    if pushFunc == nil {
+        return
+    }
     for {
         resp, err := stream.Recv()
         if err != nil {
             log.Println("等待错误", err)
             break
         }
-        log.Println("客户端收到推送:", resp.Name, string(resp.Payload))
+        if err := pushFunc(resp.Name, resp.Payload); err != nil {
+            return
+        }
     }
 }
 func WithPushMessage(fn func(name string, payload []byte) error) OptionFunc {

@@ -37,11 +37,20 @@ type srv struct {
 func (s srv) OnPushClientNew(client server.PushClient) {
     log.Println("新建推送客户端", client)
     time.AfterFunc(time.Second, func() {
-        err := client.Push("你好", []byte("消息"))
-        if err != nil {
-            log.Println("推送失败", err)
-            return
-        }
+        go func() {
+            startTime := time.Now()
+            for {
+                err := client.Push("你好", []byte("消息"))
+                if err != nil {
+                    log.Println("推送失败", err)
+                    break
+                }
+                if time.Now().Sub(startTime) > time.Second*10 {
+                    break
+                }
+            }
+        }()
+
     })
 }
 

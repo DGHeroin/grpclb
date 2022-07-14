@@ -7,6 +7,7 @@ import (
     "log"
     "os"
     "strings"
+    "sync/atomic"
     "time"
 )
 
@@ -40,9 +41,21 @@ func main() {
             }
         }
     }()
-
+    qps := int32(0)
+    go func() {
+        for {
+            time.Sleep(time.Second)
+            now := atomic.LoadInt32(&qps)
+            atomic.StoreInt32(&qps, 0)
+            if now == 0 {
+                continue
+            }
+            fmt.Println(now)
+        }
+    }()
     cli := client.NewClient(dis, client.WithPushMessage(func(name string, payload []byte) error {
-        log.Println("收到推送哎")
+        // log.Println("收到推送哎")
+        atomic.AddInt32(&qps, 1)
         return nil
     }))
 
