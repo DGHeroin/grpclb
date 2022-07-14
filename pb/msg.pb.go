@@ -24,17 +24,18 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type RequestMessage struct {
+type Message struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	Name    string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Payload []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
+	Error   []byte `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
 }
 
-func (x *RequestMessage) Reset() {
-	*x = RequestMessage{}
+func (x *Message) Reset() {
+	*x = Message{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_msg_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -42,13 +43,13 @@ func (x *RequestMessage) Reset() {
 	}
 }
 
-func (x *RequestMessage) String() string {
+func (x *Message) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RequestMessage) ProtoMessage() {}
+func (*Message) ProtoMessage() {}
 
-func (x *RequestMessage) ProtoReflect() protoreflect.Message {
+func (x *Message) ProtoReflect() protoreflect.Message {
 	mi := &file_msg_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -60,74 +61,26 @@ func (x *RequestMessage) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RequestMessage.ProtoReflect.Descriptor instead.
-func (*RequestMessage) Descriptor() ([]byte, []int) {
+// Deprecated: Use Message.ProtoReflect.Descriptor instead.
+func (*Message) Descriptor() ([]byte, []int) {
 	return file_msg_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *RequestMessage) GetName() string {
+func (x *Message) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *RequestMessage) GetPayload() []byte {
+func (x *Message) GetPayload() []byte {
 	if x != nil {
 		return x.Payload
 	}
 	return nil
 }
 
-type ResponseMessage struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Payload []byte `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
-	Error   []byte `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-}
-
-func (x *ResponseMessage) Reset() {
-	*x = ResponseMessage{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_msg_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *ResponseMessage) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ResponseMessage) ProtoMessage() {}
-
-func (x *ResponseMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_msg_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ResponseMessage.ProtoReflect.Descriptor instead.
-func (*ResponseMessage) Descriptor() ([]byte, []int) {
-	return file_msg_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *ResponseMessage) GetPayload() []byte {
-	if x != nil {
-		return x.Payload
-	}
-	return nil
-}
-
-func (x *ResponseMessage) GetError() []byte {
+func (x *Message) GetError() []byte {
 	if x != nil {
 		return x.Error
 	}
@@ -138,20 +91,18 @@ var File_msg_proto protoreflect.FileDescriptor
 
 var file_msg_proto_rawDesc = []byte{
 	0x0a, 0x09, 0x6d, 0x73, 0x67, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x02, 0x70, 0x62, 0x22,
-	0x3e, 0x0a, 0x0e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64,
-	0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x22,
-	0x41, 0x0a, 0x0f, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x4d, 0x65, 0x73, 0x73, 0x61,
-	0x67, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x0c, 0x52, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x12, 0x14, 0x0a, 0x05,
-	0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x65, 0x72, 0x72,
-	0x6f, 0x72, 0x32, 0x46, 0x0a, 0x0e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x48, 0x61, 0x6e,
-	0x64, 0x6c, 0x65, 0x72, 0x12, 0x34, 0x0a, 0x07, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
-	0x12, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4d, 0x65, 0x73, 0x73,
-	0x61, 0x67, 0x65, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x00, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x3b,
-	0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x4d, 0x0a, 0x07, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61,
+	0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x18,
+	0x0a, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52,
+	0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f,
+	0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x32, 0x5f,
+	0x0a, 0x0e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x72,
+	0x12, 0x25, 0x0a, 0x07, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0b, 0x2e, 0x70, 0x62,
+	0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x1a, 0x0b, 0x2e, 0x70, 0x62, 0x2e, 0x4d, 0x65,
+	0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x00, 0x12, 0x26, 0x0a, 0x04, 0x50, 0x75, 0x73, 0x68, 0x12,
+	0x0b, 0x2e, 0x70, 0x62, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x1a, 0x0b, 0x2e, 0x70,
+	0x62, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x00, 0x28, 0x01, 0x30, 0x01, 0x42,
+	0x06, 0x5a, 0x04, 0x2e, 0x3b, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -166,16 +117,17 @@ func file_msg_proto_rawDescGZIP() []byte {
 	return file_msg_proto_rawDescData
 }
 
-var file_msg_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_msg_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_msg_proto_goTypes = []interface{}{
-	(*RequestMessage)(nil),  // 0: pb.RequestMessage
-	(*ResponseMessage)(nil), // 1: pb.ResponseMessage
+	(*Message)(nil), // 0: pb.Message
 }
 var file_msg_proto_depIdxs = []int32{
-	0, // 0: pb.MessageHandler.Request:input_type -> pb.RequestMessage
-	1, // 1: pb.MessageHandler.Request:output_type -> pb.ResponseMessage
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	0, // 0: pb.MessageHandler.Request:input_type -> pb.Message
+	0, // 1: pb.MessageHandler.Push:input_type -> pb.Message
+	0, // 2: pb.MessageHandler.Request:output_type -> pb.Message
+	0, // 3: pb.MessageHandler.Push:output_type -> pb.Message
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -188,19 +140,7 @@ func file_msg_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_msg_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RequestMessage); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_msg_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ResponseMessage); i {
+			switch v := v.(*Message); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -218,7 +158,7 @@ func file_msg_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_msg_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
@@ -244,7 +184,8 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MessageHandlerClient interface {
-	Request(ctx context.Context, in *RequestMessage, opts ...grpc.CallOption) (*ResponseMessage, error)
+	Request(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error)
+	Push(ctx context.Context, opts ...grpc.CallOption) (MessageHandler_PushClient, error)
 }
 
 type messageHandlerClient struct {
@@ -255,8 +196,8 @@ func NewMessageHandlerClient(cc grpc.ClientConnInterface) MessageHandlerClient {
 	return &messageHandlerClient{cc}
 }
 
-func (c *messageHandlerClient) Request(ctx context.Context, in *RequestMessage, opts ...grpc.CallOption) (*ResponseMessage, error) {
-	out := new(ResponseMessage)
+func (c *messageHandlerClient) Request(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error) {
+	out := new(Message)
 	err := c.cc.Invoke(ctx, "/pb.MessageHandler/Request", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -264,17 +205,52 @@ func (c *messageHandlerClient) Request(ctx context.Context, in *RequestMessage, 
 	return out, nil
 }
 
+func (c *messageHandlerClient) Push(ctx context.Context, opts ...grpc.CallOption) (MessageHandler_PushClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_MessageHandler_serviceDesc.Streams[0], "/pb.MessageHandler/Push", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &messageHandlerPushClient{stream}
+	return x, nil
+}
+
+type MessageHandler_PushClient interface {
+	Send(*Message) error
+	Recv() (*Message, error)
+	grpc.ClientStream
+}
+
+type messageHandlerPushClient struct {
+	grpc.ClientStream
+}
+
+func (x *messageHandlerPushClient) Send(m *Message) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *messageHandlerPushClient) Recv() (*Message, error) {
+	m := new(Message)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // MessageHandlerServer is the server API for MessageHandler service.
 type MessageHandlerServer interface {
-	Request(context.Context, *RequestMessage) (*ResponseMessage, error)
+	Request(context.Context, *Message) (*Message, error)
+	Push(MessageHandler_PushServer) error
 }
 
 // UnimplementedMessageHandlerServer can be embedded to have forward compatible implementations.
 type UnimplementedMessageHandlerServer struct {
 }
 
-func (*UnimplementedMessageHandlerServer) Request(context.Context, *RequestMessage) (*ResponseMessage, error) {
+func (*UnimplementedMessageHandlerServer) Request(context.Context, *Message) (*Message, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Request not implemented")
+}
+func (*UnimplementedMessageHandlerServer) Push(MessageHandler_PushServer) error {
+	return status.Errorf(codes.Unimplemented, "method Push not implemented")
 }
 
 func RegisterMessageHandlerServer(s *grpc.Server, srv MessageHandlerServer) {
@@ -282,7 +258,7 @@ func RegisterMessageHandlerServer(s *grpc.Server, srv MessageHandlerServer) {
 }
 
 func _MessageHandler_Request_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RequestMessage)
+	in := new(Message)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -294,9 +270,35 @@ func _MessageHandler_Request_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/pb.MessageHandler/Request",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MessageHandlerServer).Request(ctx, req.(*RequestMessage))
+		return srv.(MessageHandlerServer).Request(ctx, req.(*Message))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _MessageHandler_Push_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(MessageHandlerServer).Push(&messageHandlerPushServer{stream})
+}
+
+type MessageHandler_PushServer interface {
+	Send(*Message) error
+	Recv() (*Message, error)
+	grpc.ServerStream
+}
+
+type messageHandlerPushServer struct {
+	grpc.ServerStream
+}
+
+func (x *messageHandlerPushServer) Send(m *Message) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *messageHandlerPushServer) Recv() (*Message, error) {
+	m := new(Message)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 var _MessageHandler_serviceDesc = grpc.ServiceDesc{
@@ -308,6 +310,13 @@ var _MessageHandler_serviceDesc = grpc.ServiceDesc{
 			Handler:    _MessageHandler_Request_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Push",
+			Handler:       _MessageHandler_Push_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "msg.proto",
 }

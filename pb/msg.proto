@@ -3,15 +3,12 @@ package pb;
 option go_package = ".;pb";
 
 service MessageHandler {
-  rpc Request (RequestMessage) returns (ResponseMessage) {}
+  rpc Request (Message) returns (Message) {}
+  rpc Push (stream Message) returns (stream Message) {}
 }
 
-message RequestMessage {
+message Message {
   string name = 1;
   bytes payload = 2;
-}
-
-message ResponseMessage {
-  bytes payload = 1;
-  bytes error = 2;
+  bytes error = 3;
 }

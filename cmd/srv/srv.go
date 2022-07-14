@@ -7,27 +7,16 @@ import (
     "github.com/DGHeroin/grpclb/server"
     "log"
     "net"
-    "sync/atomic"
     "time"
 )
 
 var (
     address string
-    qps     int64
 )
 
 func init() {
     flag.StringVar(&address, "addr", ":30001", "serve address")
     flag.Parse()
-
-    go func() {
-        for {
-            time.Sleep(time.Second)
-            last := atomic.LoadInt64(&qps)
-            atomic.StoreInt64(&qps, 0)
-            log.Println("qps", last)
-        }
-    }()
 }
 
 func main() {
@@ -45,8 +34,22 @@ func main() {
 type srv struct {
 }
 
+func (s srv) OnPushClientNew(client server.PushClient) {
+    log.Println("新建推送客户端", client)
+    time.AfterFunc(time.Second, func() {
+        err := client.Push("你好", []byte("消息"))
+        if err != nil {
+            log.Println("推送失败", err)
+            return
+        }
+    })
+}
+
+func (s srv) OnPushClientClose(client server.PushClient) {
+    log.Println("关闭推送客户端", client)
+}
+
 func (s srv) OnMessage(ctx context.Context, name string, payload []byte) ([]byte, error) {
-    // log.Println("收到消息", name, string(payload))
-    atomic.AddInt64(&qps, 1)
+    log.Println("收到消息", name, string(payload))
     return []byte(fmt.Sprintf("%s/%v", name, time.Now())), nil
 }
