@@ -4,11 +4,11 @@ option go_package = ".;pb";
 
 service MessageHandler {
   rpc Request (Message) returns (Message) {}
-  rpc Push (stream Message) returns (stream Message) {}
+  rpc RegisterPush (stream Message) returns (stream Message) {}
 }
 
 message Message {
   string name = 1;
   bytes payload = 2;
-  bytes error = 3;
+  string error = 3;
 }

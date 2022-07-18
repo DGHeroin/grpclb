@@ -31,7 +31,7 @@ type Message struct {
 
 	Name    string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Payload []byte `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	Error   []byte `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	Error   string `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
 }
 
 func (x *Message) Reset() {
@@ -80,11 +80,11 @@ func (x *Message) GetPayload() []byte {
 	return nil
 }
 
-func (x *Message) GetError() []byte {
+func (x *Message) GetError() string {
 	if x != nil {
 		return x.Error
 	}
-	return nil
+	return ""
 }
 
 var File_msg_proto protoreflect.FileDescriptor
@@ -95,14 +95,15 @@ var file_msg_proto_rawDesc = []byte{
 	0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x18,
 	0x0a, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52,
 	0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f,
-	0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x32, 0x5f,
+	0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x32, 0x67,
 	0x0a, 0x0e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x72,
 	0x12, 0x25, 0x0a, 0x07, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0b, 0x2e, 0x70, 0x62,
 	0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x1a, 0x0b, 0x2e, 0x70, 0x62, 0x2e, 0x4d, 0x65,
-	0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x00, 0x12, 0x26, 0x0a, 0x04, 0x50, 0x75, 0x73, 0x68, 0x12,
-	0x0b, 0x2e, 0x70, 0x62, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x1a, 0x0b, 0x2e, 0x70,
-	0x62, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x00, 0x28, 0x01, 0x30, 0x01, 0x42,
-	0x06, 0x5a, 0x04, 0x2e, 0x3b, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x00, 0x12, 0x2e, 0x0a, 0x0c, 0x52, 0x65, 0x67, 0x69, 0x73,
+	0x74, 0x65, 0x72, 0x50, 0x75, 0x73, 0x68, 0x12, 0x0b, 0x2e, 0x70, 0x62, 0x2e, 0x4d, 0x65, 0x73,
+	0x73, 0x61, 0x67, 0x65, 0x1a, 0x0b, 0x2e, 0x70, 0x62, 0x2e, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67,
+	0x65, 0x22, 0x00, 0x28, 0x01, 0x30, 0x01, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x3b, 0x70, 0x62, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -123,9 +124,9 @@ var file_msg_proto_goTypes = []interface{}{
 }
 var file_msg_proto_depIdxs = []int32{
 	0, // 0: pb.MessageHandler.Request:input_type -> pb.Message
-	0, // 1: pb.MessageHandler.Push:input_type -> pb.Message
+	0, // 1: pb.MessageHandler.RegisterPush:input_type -> pb.Message
 	0, // 2: pb.MessageHandler.Request:output_type -> pb.Message
-	0, // 3: pb.MessageHandler.Push:output_type -> pb.Message
+	0, // 3: pb.MessageHandler.RegisterPush:output_type -> pb.Message
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -185,7 +186,7 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MessageHandlerClient interface {
 	Request(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error)
-	Push(ctx context.Context, opts ...grpc.CallOption) (MessageHandler_PushClient, error)
+	RegisterPush(ctx context.Context, opts ...grpc.CallOption) (MessageHandler_RegisterPushClient, error)
 }
 
 type messageHandlerClient struct {
@@ -205,30 +206,30 @@ func (c *messageHandlerClient) Request(ctx context.Context, in *Message, opts ..
 	return out, nil
 }
 
-func (c *messageHandlerClient) Push(ctx context.Context, opts ...grpc.CallOption) (MessageHandler_PushClient, error) {
-	stream, err := c.cc.NewStream(ctx, &_MessageHandler_serviceDesc.Streams[0], "/pb.MessageHandler/Push", opts...)
+func (c *messageHandlerClient) RegisterPush(ctx context.Context, opts ...grpc.CallOption) (MessageHandler_RegisterPushClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_MessageHandler_serviceDesc.Streams[0], "/pb.MessageHandler/RegisterPush", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &messageHandlerPushClient{stream}
+	x := &messageHandlerRegisterPushClient{stream}
 	return x, nil
 }
 
-type MessageHandler_PushClient interface {
+type MessageHandler_RegisterPushClient interface {
 	Send(*Message) error
 	Recv() (*Message, error)
 	grpc.ClientStream
 }
 
-type messageHandlerPushClient struct {
+type messageHandlerRegisterPushClient struct {
 	grpc.ClientStream
 }
 
-func (x *messageHandlerPushClient) Send(m *Message) error {
+func (x *messageHandlerRegisterPushClient) Send(m *Message) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *messageHandlerPushClient) Recv() (*Message, error) {
+func (x *messageHandlerRegisterPushClient) Recv() (*Message, error) {
 	m := new(Message)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -239,7 +240,7 @@ func (x *messageHandlerPushClient) Recv() (*Message, error) {
 // MessageHandlerServer is the server API for MessageHandler service.
 type MessageHandlerServer interface {
 	Request(context.Context, *Message) (*Message, error)
-	Push(MessageHandler_PushServer) error
+	RegisterPush(MessageHandler_RegisterPushServer) error
 }
 
 // UnimplementedMessageHandlerServer can be embedded to have forward compatible implementations.
@@ -249,8 +250,8 @@ type UnimplementedMessageHandlerServer struct {
 func (*UnimplementedMessageHandlerServer) Request(context.Context, *Message) (*Message, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Request not implemented")
 }
-func (*UnimplementedMessageHandlerServer) Push(MessageHandler_PushServer) error {
-	return status.Errorf(codes.Unimplemented, "method Push not implemented")
+func (*UnimplementedMessageHandlerServer) RegisterPush(MessageHandler_RegisterPushServer) error {
+	return status.Errorf(codes.Unimplemented, "method RegisterPush not implemented")
 }
 
 func RegisterMessageHandlerServer(s *grpc.Server, srv MessageHandlerServer) {
@@ -275,25 +276,25 @@ func _MessageHandler_Request_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MessageHandler_Push_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageHandlerServer).Push(&messageHandlerPushServer{stream})
+func _MessageHandler_RegisterPush_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(MessageHandlerServer).RegisterPush(&messageHandlerRegisterPushServer{stream})
 }
 
-type MessageHandler_PushServer interface {
+type MessageHandler_RegisterPushServer interface {
 	Send(*Message) error
 	Recv() (*Message, error)
 	grpc.ServerStream
 }
 
-type messageHandlerPushServer struct {
+type messageHandlerRegisterPushServer struct {
 	grpc.ServerStream
 }
 
-func (x *messageHandlerPushServer) Send(m *Message) error {
+func (x *messageHandlerRegisterPushServer) Send(m *Message) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *messageHandlerPushServer) Recv() (*Message, error) {
+func (x *messageHandlerRegisterPushServer) Recv() (*Message, error) {
 	m := new(Message)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -312,8 +313,8 @@ var _MessageHandler_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Push",
-			Handler:       _MessageHandler_Push_Handler,
+			StreamName:    "RegisterPush",
+			Handler:       _MessageHandler_RegisterPush_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

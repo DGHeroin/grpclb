@@ -2,6 +2,7 @@ package main
 
 import (
     "bufio"
+    "flag"
     "fmt"
     "github.com/DGHeroin/grpclb/client"
     "log"
@@ -10,6 +11,15 @@ import (
     "sync/atomic"
     "time"
 )
+
+var (
+    address = "localhost:30001,localhost:30002"
+)
+
+func init() {
+    flag.StringVar(&address, "addr", "ts.1kb.win", "server address")
+    flag.Parse()
+}
 
 type discovery struct {
     ch chan []string
@@ -24,7 +34,7 @@ func main() {
         ch: make(chan []string),
     }
     go func() {
-        dis.ch <- []string{"localhost:30001", "localhost:30002"}
+        dis.ch <- strings.Split(address, ",")
     }()
     go func() {
         r := bufio.NewReader(os.Stdin)
@@ -53,10 +63,10 @@ func main() {
             fmt.Println(now)
         }
     }()
-    cli := client.NewClient(dis, client.WithPushMessage(func(name string, payload []byte) error {
+    cli := client.NewClient(dis, client.WithPushMessage(func(name string, payload []byte) ([]byte, error) {
         // log.Println("收到推送哎")
         atomic.AddInt32(&qps, 1)
-        return nil
+        return nil, nil
     }))
 
     request(cli, time.Second)
@@ -70,6 +80,7 @@ func request(cli client.Client, duration time.Duration) {
         }
         _, err := cli.Send(nil, "hello", []byte(fmt.Sprintf("hello world:%d", i)))
         if err != nil {
+            log.Println(err)
             continue
         }
     }

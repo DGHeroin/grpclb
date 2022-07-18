@@ -2,10 +2,14 @@ package server
 
 import (
     "context"
+    "fmt"
     "github.com/DGHeroin/grpclb/pb"
+    "github.com/DGHeroin/grpclb/utils"
     "google.golang.org/grpc"
     "google.golang.org/grpc/reflection"
+    "log"
     "net"
+    "sync"
 )
 
 type (
@@ -23,22 +27,72 @@ type (
     }
 )
 
-func (s *serverImpl) Push(server pb.MessageHandler_PushServer) error {
-    ps := newPushClient(func(name string, payload []byte) error {
-        req := &pb.Message{
-            Name:    name,
-            Payload: payload,
+func (s *serverImpl) RegisterPush(server pb.MessageHandler_RegisterPushServer) error {
+    utils.Recover()
+    type pushContext struct {
+        wg           *sync.WaitGroup
+        requestData  []byte
+        responseData []byte
+        err          error
+        name         string
+    }
+    sendCh := make(chan *pushContext)
+
+    ps := newPushClient(func(name string, payload []byte) ([]byte, error) {
+        utils.Recover()
+        ctx := &pushContext{
+            name:        name,
+            wg:          &sync.WaitGroup{},
+            requestData: payload,
         }
-        return server.Send(req)
+        ctx.wg.Add(1)
+        sendCh <- ctx
+        ctx.wg.Wait()
+
+        return ctx.responseData, ctx.err
     })
     s.handler.OnPushClientNew(ps)
 
     ctx := server.Context()
     defer func() {
         s.handler.OnPushClientClose(ps)
+        close(sendCh)
     }()
+    // 首个消息
+    if msg, err := server.Recv(); err != nil {
+        return err
+    } else {
+        if msg.Name != "ping" {
+            return fmt.Errorf("first message should be 'ping'")
+        }
+        if err := server.Send(&pb.Message{Name: "pong"}); err != nil {
+            return fmt.Errorf("first message response 'pong' error:%v", err)
+        }
+    }
+
     for {
         select {
+        case ctx := <-sendCh:
+            if ctx == nil {
+                return nil // signal by close
+            }
+            // send push
+            err := server.Send(&pb.Message{Name: ctx.name, Payload: ctx.requestData})
+            if err != nil {
+                log.Println("server send push error:", err)
+                ctx.wg.Done()
+                return nil
+            }
+            // wait response
+            if pushResponseMessage, err := server.Recv(); err != nil {
+                ctx.err = err
+            } else {
+                ctx.responseData = pushResponseMessage.Payload
+                if pushResponseMessage.Error != "" {
+                    ctx.err = fmt.Errorf("%s", pushResponseMessage.Error)
+                }
+            }
+            ctx.wg.Done()
         case <-ctx.Done():
             return ctx.Err()
         }
@@ -51,7 +105,7 @@ func (s *serverImpl) Request(ctx context.Context, r *pb.Message) (*pb.Message, e
         Payload: data,
     }
     if err != nil {
-        resp.Error = []byte(err.Error())
+        resp.Error = err.Error()
     }
     return resp, nil
 }

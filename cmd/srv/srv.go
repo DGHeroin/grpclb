@@ -40,7 +40,7 @@ func (s srv) OnPushClientNew(client server.PushClient) {
         go func() {
             startTime := time.Now()
             for {
-                err := client.Push("你好", []byte("消息"))
+                err := client.Push("你好", []byte("消息"), nil)
                 if err != nil {
                     log.Println("推送失败", err)
                     break

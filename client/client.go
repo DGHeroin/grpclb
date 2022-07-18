@@ -27,7 +27,8 @@ type (
     }
     option struct {
         usePush  bool
-        pushFunc func(name string, payload []byte) error
+        pushFunc func(name string, payload []byte) ([]byte, error)
+        timeout  time.Duration
     }
     OptionFunc func(*option)
 )
@@ -36,7 +37,9 @@ func NewClient(discover Discover, fns ...OptionFunc) Client {
     cli := &client{
         discover: discover,
     }
-    opt := &option{}
+    opt := &option{
+        timeout: time.Second * 5,
+    }
     for _, fn := range fns {
         fn(opt)
     }
@@ -57,7 +60,7 @@ func (c *client) init() {
     r := newResolver(c.discover, serviceName)
     resolver.Register(r)
 
-    ctx, cancel := context.WithTimeout(context.TODO(), time.Second*3)
+    ctx, cancel := context.WithTimeout(context.TODO(), c.opt.timeout)
     conn, err := grpc.DialContext(ctx,
         fmt.Sprintf("%s://autority/%s", r.Scheme(), serviceName),
         grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -65,6 +68,7 @@ func (c *client) init() {
     )
     if err != nil {
         c.onError(err)
+        log.Println("发送错误", err)
     }
     cancel()
     c.conn = conn
@@ -87,16 +91,20 @@ func (c *client) Send(ctx context.Context, name string, payload []byte) ([]byte,
     if err != nil {
         return nil, fmt.Errorf("grpclb:%v", err)
     }
+    if resp.Error != "" {
+        return resp.Payload, fmt.Errorf("%s", resp.Error)
+    }
     return resp.Payload, nil
 }
 
 func (c *client) onError(err error) {
-
+    // fmt.Println(err)
 }
 
 func (c *client) loopPush() {
     for {
         c.waitPush()
+        time.Sleep(time.Second)
     }
 }
 func (c *client) waitPush() {
@@ -105,16 +113,23 @@ func (c *client) waitPush() {
         return
     }
     cli := pb.NewMessageHandlerClient(c.conn)
-    stream, err := cli.Push(context.Background())
+    stream, err := cli.RegisterPush(context.Background())
     if err != nil {
+        log.Println("发生错误...", err)
         c.onError(err)
         return
     }
-    req := &pb.Message{}
-    err = stream.Send(req)
-    if err != nil {
-        log.Println("发送push失败:", err)
+
+    if err = stream.Send(&pb.Message{Name: "ping"}); err != nil {
+        log.Println("send ping:", err)
         return
+    }
+    if msg, err := stream.Recv(); err != nil {
+        return
+    } else {
+        if msg.Name != "pong" {
+            return
+        }
     }
     pushFunc := c.opt.pushFunc
     if pushFunc == nil {
@@ -126,12 +141,21 @@ func (c *client) waitPush() {
             log.Println("等待错误", err)
             break
         }
-        if err := pushFunc(resp.Name, resp.Payload); err != nil {
-            return
+        data, err := pushFunc(resp.Name, resp.Payload)
+        respMsg := &pb.Message{
+            Name:    resp.Name,
+            Payload: data,
+        }
+        if err != nil {
+            respMsg.Error = err.Error()
+        }
+        if err := stream.Send(respMsg); err != nil {
+            log.Println("ack error:", err)
+            break
         }
     }
 }
-func WithPushMessage(fn func(name string, payload []byte) error) OptionFunc {
+func WithPushMessage(fn func(name string, payload []byte) ([]byte, error)) OptionFunc {
     return func(o *option) {
         o.usePush = true
         o.pushFunc = fn
