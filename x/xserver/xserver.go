@@ -62,6 +62,9 @@ func (s *XServer) RegisterPush(name string, fn interface{}) bool {
 func (s *XServer) ServeListener(ln net.Listener) error {
     return s.impl.server.ServeListener(ln)
 }
+func (s *XServer) BroadcastPush(name string, payload []byte) {
+    s.impl.server.BroadcastPush(name, payload)
+}
 
 func WithPushEvent(onNew, onClose func(client PushClient)) OptionFunc {
     return func(o *option) {

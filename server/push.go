@@ -6,6 +6,7 @@ type (
     }
     pushClientImpl struct {
         pushFn pushFunc
+        id     int32
     }
     pushFunc func(name string, payload []byte) ([]byte, error)
 )

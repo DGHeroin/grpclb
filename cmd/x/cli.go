@@ -4,6 +4,7 @@ import (
     "context"
     "github.com/DGHeroin/grpclb/x/xclient"
     "log"
+    "os"
 )
 
 type discovery struct {
@@ -22,8 +23,12 @@ func main() {
     cli := xclient.NewXClient(dis)
 
     cli.RegisterPush("on.client.push", func(ctx context.Context, payload []byte) ([]byte, error) {
-        log.Println("收到消息", string(payload))
+        log.Println(os.Getenv("name")+"收到消息", string(payload))
         return []byte("你好,推送消息!"), nil
+    })
+    cli.RegisterPush("on.client.broadcast", func(ctx context.Context, payload []byte) ([]byte, error) {
+        log.Println(os.Getenv("name")+"收到广播消息", string(payload))
+        return []byte("你好,广播消息!"), nil
     })
 
     var (

@@ -2,7 +2,6 @@ package main
 
 import (
     "context"
-    "github.com/DGHeroin/grpclb/common/errs"
     "github.com/DGHeroin/grpclb/server"
     "github.com/DGHeroin/grpclb/x/xserver"
     "log"
@@ -12,7 +11,8 @@ import (
 
 func main() {
     log.SetFlags(log.LstdFlags | log.Lshortfile)
-    s := xserver.NewXServer(xserver.WithPushEvent(func(client server.PushClient) {
+    var s xserver.XServer
+    s = xserver.NewXServer(xserver.WithPushEvent(func(client server.PushClient) {
         pushMsg := []byte("server say hello")
 
         time.AfterFunc(time.Second, func() {
@@ -20,15 +20,8 @@ func main() {
             if err != nil {
                 log.Println(err)
             }
-            log.Println("推送 1:", err, string(reply))
-            reply, err = client.Push("on.client.not_exist", pushMsg)
-            if errs.IsError(err, errs.ErrHandlerNotFound) {
-                log.Println("没有处理器")
-            }
-            if err != nil {
-                log.Println(err)
-            }
-            log.Println("推送 2:", err, string(reply))
+            log.Println("消息:", string(reply))
+            s.BroadcastPush("on.client.broadcast", []byte("广播消息"))
         })
     }, func(client server.PushClient) {
 

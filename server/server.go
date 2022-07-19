@@ -11,11 +11,13 @@ import (
     "log"
     "net"
     "sync"
+    "sync/atomic"
 )
 
 type (
     Server interface {
         ServeListener(ln net.Listener) error
+        BroadcastPush(name string, payload []byte)
     }
     Handler interface {
         OnMessage(ctx context.Context, name string, payload []byte) ([]byte, error)
@@ -23,8 +25,11 @@ type (
         OnPushClientClose(client PushClient)
     }
     serverImpl struct {
-        rpcServer *grpc.Server
-        handler   Handler
+        rpcServer    *grpc.Server
+        handler      Handler
+        mu           sync.RWMutex
+        pushClientId int32
+        allClients   map[int32]*pushClientImpl
     }
 )
 
@@ -52,10 +57,12 @@ func (s *serverImpl) RegisterPush(server pb.MessageHandler_RegisterPushServer) e
 
         return ctx.responseData, ctx.err
     })
+    s.addPushClient(ps)
     s.handler.OnPushClientNew(ps)
 
     ctx := server.Context()
     defer func() {
+        s.removePushClient(ps)
         s.handler.OnPushClientClose(ps)
         close(sendCh)
     }()
@@ -99,7 +106,6 @@ func (s *serverImpl) RegisterPush(server pb.MessageHandler_RegisterPushServer) e
         }
     }
 }
-
 func (s *serverImpl) Request(ctx context.Context, r *pb.Message) (*pb.Message, error) {
     data, err := s.handler.OnMessage(ctx, r.Name, r.Payload)
     resp := &pb.Message{
@@ -113,9 +119,34 @@ func (s *serverImpl) Request(ctx context.Context, r *pb.Message) (*pb.Message, e
 func (s *serverImpl) ServeListener(ln net.Listener) error {
     return s.rpcServer.Serve(ln)
 }
+func (s *serverImpl) addPushClient(ps *pushClientImpl) {
+    s.mu.Lock()
+    defer s.mu.Unlock()
+    for {
+        id := atomic.AddInt32(&s.pushClientId, 1)
+        if _, ok := s.allClients[id]; !ok {
+            s.allClients[id] = ps
+            ps.id = id
+            break
+        }
+    }
+}
+func (s *serverImpl) removePushClient(ps *pushClientImpl) {
+    s.mu.Lock()
+    defer s.mu.Unlock()
+    delete(s.allClients, ps.id)
+}
+func (s *serverImpl) BroadcastPush(name string, payload []byte) {
+    s.mu.RLock()
+    defer s.mu.RUnlock()
+    for _, v := range s.allClients {
+        _, _ = v.Push(name, payload)
+    }
+}
 func NewServer(handler Handler) Server {
     srv := &serverImpl{
-        handler: handler,
+        handler:    handler,
+        allClients: map[int32]*pushClientImpl{},
     }
     s := grpc.NewServer()
     pb.RegisterMessageHandlerServer(s, srv)
