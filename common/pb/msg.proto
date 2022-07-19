@@ -10,5 +10,5 @@ service MessageHandler {
 message Message {
   string name = 1;
   bytes payload = 2;
-  string error = 3;
+  int32 errorCode = 3;
 }

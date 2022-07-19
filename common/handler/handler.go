@@ -3,7 +3,7 @@ package handler
 import (
     "context"
     "fmt"
-    "github.com/DGHeroin/grpclb/utils"
+    "github.com/DGHeroin/grpclb/common/utils"
     "reflect"
 )
 

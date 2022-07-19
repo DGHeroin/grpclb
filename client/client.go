@@ -3,7 +3,8 @@ package client
 import (
     "context"
     "fmt"
-    "github.com/DGHeroin/grpclb/pb"
+    "github.com/DGHeroin/grpclb/common/errs"
+    "github.com/DGHeroin/grpclb/common/pb"
     "google.golang.org/grpc"
     "google.golang.org/grpc/credentials/insecure"
     "google.golang.org/grpc/resolver"
@@ -91,8 +92,8 @@ func (c *client) Send(ctx context.Context, name string, payload []byte) ([]byte,
     if err != nil {
         return nil, fmt.Errorf("grpclb:%v", err)
     }
-    if resp.Error != "" {
-        return resp.Payload, fmt.Errorf("%s", resp.Error)
+    if resp.ErrorCode != 0 {
+        return resp.Payload, errs.GetError(resp.ErrorCode)
     }
     return resp.Payload, nil
 }
@@ -147,7 +148,7 @@ func (c *client) waitPush() {
             Payload: data,
         }
         if err != nil {
-            respMsg.Error = err.Error()
+            respMsg.ErrorCode = errs.ErrCodePushHandlerInvoke
         }
         if err := stream.Send(respMsg); err != nil {
             log.Println("ack error:", err)

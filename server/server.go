@@ -3,8 +3,9 @@ package server
 import (
     "context"
     "fmt"
-    "github.com/DGHeroin/grpclb/pb"
-    "github.com/DGHeroin/grpclb/utils"
+    "github.com/DGHeroin/grpclb/common/errs"
+    "github.com/DGHeroin/grpclb/common/pb"
+    "github.com/DGHeroin/grpclb/common/utils"
     "google.golang.org/grpc"
     "google.golang.org/grpc/reflection"
     "log"
@@ -88,8 +89,8 @@ func (s *serverImpl) RegisterPush(server pb.MessageHandler_RegisterPushServer) e
                 ctx.err = err
             } else {
                 ctx.responseData = pushResponseMessage.Payload
-                if pushResponseMessage.Error != "" {
-                    ctx.err = fmt.Errorf("%s", pushResponseMessage.Error)
+                if pushResponseMessage.ErrorCode != 0 {
+                    ctx.err = errs.GetError(pushResponseMessage.ErrorCode)
                 }
             }
             ctx.wg.Done()
@@ -105,7 +106,7 @@ func (s *serverImpl) Request(ctx context.Context, r *pb.Message) (*pb.Message, e
         Payload: data,
     }
     if err != nil {
-        resp.Error = err.Error()
+        resp.ErrorCode = errs.ErrCodeRequestHandlerInvoke
     }
     return resp, nil
 }

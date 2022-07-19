@@ -2,6 +2,7 @@ package main
 
 import (
     "context"
+    "github.com/DGHeroin/grpclb/common/errs"
     "github.com/DGHeroin/grpclb/server"
     "github.com/DGHeroin/grpclb/x/xserver"
     "log"
@@ -19,12 +20,15 @@ func main() {
             if err != nil {
                 log.Println(err)
             }
-            log.Println("推送 1:", string(reply))
+            log.Println("推送 1:", err, string(reply))
             reply, err = client.Push("on.client.not_exist", pushMsg)
+            if errs.IsError(err, errs.ErrHandlerNotFound) {
+                log.Println("没有处理器")
+            }
             if err != nil {
                 log.Println(err)
             }
-            log.Println("推送 2:", reply)
+            log.Println("推送 2:", err, string(reply))
         })
     }, func(client server.PushClient) {
 

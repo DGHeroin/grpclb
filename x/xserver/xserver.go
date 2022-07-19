@@ -2,7 +2,7 @@ package xserver
 
 import (
     "context"
-    "github.com/DGHeroin/grpclb/handler"
+    "github.com/DGHeroin/grpclb/common/handler"
     . "github.com/DGHeroin/grpclb/server"
     "net"
 )
