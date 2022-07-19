@@ -4,6 +4,7 @@ import (
     "context"
     "fmt"
     "github.com/DGHeroin/grpclb/common/errs"
+    "github.com/DGHeroin/grpclb/common/handler"
     "github.com/DGHeroin/grpclb/common/pb"
     "github.com/DGHeroin/grpclb/common/utils"
     "google.golang.org/grpc"
@@ -18,20 +19,21 @@ type (
     Server interface {
         ServeListener(ln net.Listener) error
         BroadcastPush(name string, payload []byte)
-    }
-    Handler interface {
-        OnMessage(ctx context.Context, name string, payload []byte) ([]byte, error)
-        OnPushClientNew(client PushClient)
-        OnPushClientClose(client PushClient)
+        RegisterHandler(name string, fn interface{}) bool
     }
     serverImpl struct {
+        option       *option
         rpcServer    *grpc.Server
-        handler      Handler
+        handlers     *handler.Handlers
         mu           sync.RWMutex
         pushClientId int32
         allClients   map[int32]*pushClientImpl
     }
 )
+
+func (s *serverImpl) RegisterHandler(name string, fn interface{}) bool {
+    return s.handlers.Register(name, fn)
+}
 
 func (s *serverImpl) RegisterPush(server pb.MessageHandler_RegisterPushServer) error {
     utils.Recover()
@@ -42,7 +44,7 @@ func (s *serverImpl) RegisterPush(server pb.MessageHandler_RegisterPushServer) e
         err          error
         name         string
     }
-    sendCh := make(chan *pushContext)
+    sendCh := make(chan *pushContext, 10)
 
     ps := newPushClient(func(name string, payload []byte) ([]byte, error) {
         utils.Recover()
@@ -57,13 +59,11 @@ func (s *serverImpl) RegisterPush(server pb.MessageHandler_RegisterPushServer) e
 
         return ctx.responseData, ctx.err
     })
-    s.addPushClient(ps)
-    s.handler.OnPushClientNew(ps)
 
     ctx := server.Context()
     defer func() {
         s.removePushClient(ps)
-        s.handler.OnPushClientClose(ps)
+        go s.option.OnPushClientClose(ps)
         close(sendCh)
     }()
     // 首个消息
@@ -77,6 +77,9 @@ func (s *serverImpl) RegisterPush(server pb.MessageHandler_RegisterPushServer) e
             return fmt.Errorf("first message response 'pong' error:%v", err)
         }
     }
+
+    s.addPushClient(ps)
+    go s.option.OnPushClientNew(ps)
 
     for {
         select {
@@ -107,7 +110,7 @@ func (s *serverImpl) RegisterPush(server pb.MessageHandler_RegisterPushServer) e
     }
 }
 func (s *serverImpl) Request(ctx context.Context, r *pb.Message) (*pb.Message, error) {
-    data, err := s.handler.OnMessage(ctx, r.Name, r.Payload)
+    data, err := s.handlers.HandleMessage(ctx, r.Name, r.Payload)
     resp := &pb.Message{
         Payload: data,
     }
@@ -143,9 +146,15 @@ func (s *serverImpl) BroadcastPush(name string, payload []byte) {
         _, _ = v.Push(name, payload)
     }
 }
-func NewServer(handler Handler) Server {
+func NewServer(opts ...Option) Server {
+    o := defaultOption()
+    for _, opt := range opts {
+        opt(o)
+    }
+
     srv := &serverImpl{
-        handler:    handler,
+        option:     o,
+        handlers:   handler.NewHandlers(),
         allClients: map[int32]*pushClientImpl{},
     }
     s := grpc.NewServer()

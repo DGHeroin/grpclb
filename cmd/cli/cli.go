@@ -13,29 +13,37 @@ import (
 )
 
 var (
-    address = "localhost:30001,localhost:30002"
+    address string
 )
 
 func init() {
-    flag.StringVar(&address, "addr", "ts.1kb.win", "server address")
+    log.SetFlags(log.LstdFlags | log.Lshortfile)
+    flag.StringVar(&address, "addr", "localhost:30001,localhost:30002", "server address")
     flag.Parse()
 }
 
 type discovery struct {
-    ch chan []string
+    ch     chan []string
+    latest []string
+}
+
+func (d *discovery) Latest() []string {
+    return d.latest
 }
 
 func (d *discovery) WatchUpdate() <-chan []string {
     return d.ch
 }
+func (d *discovery) Dispatch(address []string) {
+    d.ch <- address
+    d.latest = address
+}
 
 func main() {
     dis := &discovery{
-        ch: make(chan []string),
+        ch: make(chan []string, 1),
     }
-    go func() {
-        dis.ch <- strings.Split(address, ",")
-    }()
+    dis.Dispatch(strings.Split(address, ","))
     go func() {
         r := bufio.NewReader(os.Stdin)
         for {
@@ -63,11 +71,13 @@ func main() {
             fmt.Println(now)
         }
     }()
-    cli := client.NewClient(dis, client.WithPushMessage(func(name string, payload []byte) ([]byte, error) {
-        // log.Println("收到推送哎")
-        atomic.AddInt32(&qps, 1)
-        return nil, nil
-    }))
+    cli := client.NewClient(dis,
+        client.WithTimeout(time.Second),
+        client.WithPushMessage(func(name string, payload []byte) ([]byte, error) {
+            atomic.AddInt32(&qps, 1)
+            log.Println("收到推送", name, string(payload))
+            return nil, nil
+        }))
 
     request(cli, time.Second)
 }
@@ -78,9 +88,10 @@ func request(cli client.Client, duration time.Duration) {
         if duration > 0 {
             time.Sleep(duration)
         }
-        _, err := cli.Send(nil, "hello", []byte(fmt.Sprintf("hello world:%d", i)))
+        req := "你好呀"
+        err := cli.Request(nil, "hello", &req, nil)
         if err != nil {
-            log.Println(err)
+            log.Println("发送请求失败:", err)
             continue
         }
     }

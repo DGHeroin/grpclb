@@ -46,11 +46,13 @@ func (s *Handlers) HandleMessage(ctx context.Context, name string, payload []byt
     t0 := reflect.ValueOf(ctx)
     t1 := reflect.New(sh.r)
     t2 := reflect.New(sh.w)
+    var err error
     in := []reflect.Value{
         t0, t1, t2,
     }
-
-    err := Unmarshal(payload, t1.Interface())
+    if payload != nil {
+        err = Unmarshal(payload, t1.Interface())
+    }
     if err != nil {
         return nil, fmt.Errorf("handler Unmarshal error:%v", err)
     }
